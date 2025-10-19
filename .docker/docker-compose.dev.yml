@@ -1,0 +1,37 @@
+services:
+  bot:
+    build:
+      context: ../app
+      dockerfile: ../.docker/Dockerfile
+      target: ${DOCKER_TARGET:-dev} # Для dev-режима используем отдельный build target
+    container_name: grimoire-bot
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env # В dev-режиме удобно использовать .env
+    depends_on:
+      - db
+    volumes:
+      - ../app:/app # Для hot reload и локальной разработки
+    ports:
+      - 3333:3333
+
+  db:
+    image: postgres:15-alpine
+    container_name: grimoire-db
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env # Переменные для базы также через .env
+    ports:
+      - "${PUBLIC_POSTGRES_PORT}:5432"
+    volumes:
+      - ../pgdata:/var/lib/postgresql/data
