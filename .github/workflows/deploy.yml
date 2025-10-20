@@ -23,6 +23,7 @@ jobs:
         with:
           context: ./app
           file: .docker/Dockerfile
+          target: prod
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/grimoire-bot:latest
 

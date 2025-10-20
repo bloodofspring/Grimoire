@@ -44,7 +44,6 @@ func main() {
 			},
 			MaxConnections: 100,
 		},
-		Verbose: true,
 	}
 
 	b, err := tele.NewBot(pref)
