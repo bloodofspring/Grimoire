@@ -1,5 +1,7 @@
 services:
   bot:
+    build:
+     target: prod
     image: ${DOCKERHUB_USERNAME}/grimoire-bot:latest # Используем образ из DockerHub
     container_name: grimoire-bot
     restart: always
