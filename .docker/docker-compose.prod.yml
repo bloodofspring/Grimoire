@@ -2,7 +2,7 @@ services:
   bot:
     image: ${DOCKERHUB_USERNAME}/grimoire-bot:latest # Используем образ из DockerHub
     container_name: grimoire-bot
-    restart: never # always
+    restart: no # always
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
