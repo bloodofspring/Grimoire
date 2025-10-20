@@ -46,7 +46,7 @@ jobs:
 
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
 
-            docker compose -f -p grimoire-bot docker-compose.prod.yml pull
-            docker compose -f -p grimoire-bot docker-compose.prod.yml down
-            docker compose -f -p grimoire-bot docker-compose.prod.yml up -d bot
+            docker compose -p grimoire-bot -f docker-compose.prod.yml pull
+            docker compose -p grimoire-bot -f docker-compose.prod.yml down
+            docker compose -p grimoire-bot -f docker-compose.prod.yml up -d bot
             docker system prune -f --filter "label=com.docker.compose.project=grimoire-bot"
