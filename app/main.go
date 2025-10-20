@@ -56,6 +56,14 @@ func main() {
 	b.Use(middleware.Logger())
 	bloodofspringOnly := b.Group()
 	bloodofspringOnly.Use(middleware.Whitelist(viper.GetInt64("bloodofspring.telegram_id")))
+	bloodofspringOnly.Use(tele.MiddlewareFunc(func(hf tele.HandlerFunc) tele.HandlerFunc {
+		return func(c tele.Context) error {
+			if c.Chat().Type != tele.ChatPrivate {
+				return nil
+			}
+			return hf(c)
+		}
+	}))
 	bloodofspringOnly.Handle(tele.OnText, registertext.RegisterTextChain().Run)
 
 	log.Println("Starting bot...")
