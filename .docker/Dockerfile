@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bot main.go
 # --- Production image ---
 FROM alpine:3.19 AS prod
 WORKDIR /app
-COPY --from=builder /app/bot ./bot
+COPY --from=builder /app/bot /app/botConfig.yaml /app/
 
 ENV GIN_MODE=release
 # HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD ["/app/bot", "--healthcheck"]
