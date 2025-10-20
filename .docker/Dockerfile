@@ -12,9 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bot main.go
 FROM alpine:3.19 AS prod
 WORKDIR /app
 COPY --from=builder /app/bot ./bot
-# В продакшн-образ .env не копируем! Только пример для локальной разработки
-COPY ./env.example ./env.example
-# Все секреты и переменные окружения должны задаваться через ENV или docker-compose, а не через .env
+
 ENV GIN_MODE=release
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD ["/app/bot", "--healthcheck"]
 ENTRYPOINT ["/app/bot"]
