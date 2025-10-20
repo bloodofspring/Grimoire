@@ -3,9 +3,9 @@
 # --- Build stage ---
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
-COPY app/go.mod app/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
-COPY app/ .
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bot main.go
 
 # --- Production image ---
@@ -24,8 +24,8 @@ WORKDIR /app
 # Установка CompileDaemon для hot reload
 RUN go install github.com/githubnemo/CompileDaemon@latest
 
-COPY app/go.mod app/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
-COPY app/ .
+COPY . .
 
 CMD ["CompileDaemon", "-graceful-kill", "--build", "go build -o ./tmp/app main.go", "--command", "./tmp/app"]

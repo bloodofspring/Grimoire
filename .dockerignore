@@ -1,0 +1,7 @@
+.docker
+.github
+pgdata
+.DS_store
+.idea
+.gitignore
+.air.toml
