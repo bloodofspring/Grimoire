@@ -13,8 +13,8 @@ services:
       - TELEGRAM_BOT_PUBLIC_URL=https://bloodofspring.com/bot${TELEGRAM_BOT_TOKEN}
     depends_on:
       - db
-    expose:
-      - "7760"
+    ports:
+      - "7760:7760"
 
   db:
     image: postgres:15-alpine
