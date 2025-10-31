@@ -1,6 +1,6 @@
 bloodofspring:
   telegram_id: 1044385209
-  # 3178963763
-  # archive_group_id: 3178963763
-  archive_group_id: -1003178963763
-  thread_id: 4
+  # ID группы, из которой будут пересылаться сообщения
+  source_group_id: -1003226485859
+  # ID канала, куда будут пересылаться сообщения
+  target_channel_id: -1002000006931

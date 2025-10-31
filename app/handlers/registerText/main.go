@@ -7,7 +7,6 @@ import (
 	"grimoire/database"
 	"grimoire/database/models"
 	"grimoire/handlers"
-	"grimoire/util"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/spf13/viper"
@@ -19,59 +18,78 @@ func connectToDatabase(c tele.Context, args *handlers.Arg) (*handlers.Arg, error
 
 	newArgs := make(handlers.Arg)
 	newArgs["db"] = db
-	
+
 	return &newArgs, nil
 }
 
 func registerText(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
-	text := c.Message().Text
-	if text == "" {
-		return nil, errors.New("text is empty")
+	message := c.Message()
+	if message == nil {
+		return nil, errors.New("message is nil")
 	}
 
 	db := (*args)["db"].(*pg.DB)
-	
-	textDb := models.Text{
-		Text: text,
-		UserID: c.Sender().ID,
-	}
-	_, err := db.Model(&textDb).Insert()
-	if err != nil {
-		return nil, errors.New("error inserting text: " + err.Error())
+
+	// Извлекаем текст сообщения или подпись к медиа
+	text := message.Text
+	if text == "" {
+		text = message.Caption
 	}
 
-	_, err = db.Model(&models.User{TgID: c.Sender().ID}).OnConflict("DO NOTHING").SelectOrInsert()
+	// Сохраняем пользователя если его еще нет
+	_, err := db.Model(&models.User{TgID: c.Sender().ID}).OnConflict("DO NOTHING").SelectOrInsert()
 	if err != nil {
 		return nil, errors.New("error updating user: " + err.Error())
 	}
 
-	args = util.UpdateArgs(args, "text", text)
+	// Сохраняем текст в БД только если он есть
+	if text != "" {
+		textDb := models.Text{
+			Text:   text,
+			UserID: c.Sender().ID,
+		}
+		_, err = db.Model(&textDb).Insert()
+		if err != nil {
+			return nil, errors.New("error inserting text: " + err.Error())
+		}
+	}
+
+	// Сохраняем сообщение в args для пересылки (даже если текста нет)
+	(*args)["message"] = message
+	if text != "" {
+		(*args)["text"] = text
+	}
 
 	return args, nil
 }
 
-func resendText(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
-	_, err := c.Bot().Send(
-		&tele.Chat{ID: viper.GetInt64("bloodofspring.archive_group_id")},
-		(*args)["text"],
-		&tele.SendOptions{ThreadID: viper.GetInt("bloodofspring.thread_id")},
+func forwardToChannel(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
+	messageRaw, ok := (*args)["message"]
+	if !ok {
+		return nil, errors.New("message not found in args")
+	}
+	message, ok := messageRaw.(*tele.Message)
+	if !ok || message == nil {
+		return nil, errors.New("message is nil or invalid type in args")
+	}
+
+	targetChannelID := viper.GetInt64("bloodofspring.target_channel_id")
+	if targetChannelID == 0 {
+		return nil, errors.New("target_channel_id is not set in config")
+	}
+
+	// Пересылаем сообщение в канал
+	_, err := c.Bot().Forward(
+		&tele.Chat{ID: targetChannelID},
+		message,
 	)
 	if err != nil {
-		return nil, errors.New("error sending text: " + err.Error())
-	}
-	return args, nil
-}
-
-func sendResultMessage(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
-	err := c.Send("Сохранено!")
-	if err != nil {
-		return nil, errors.New("error sending result message: " + err.Error())
+		return nil, errors.New("error forwarding message: " + err.Error())
 	}
 
 	return args, nil
 }
-
 
 func RegisterTextChain() *handlers.HandlerChain {
-	return handlers.HandlerChain{}.Init(10 * time.Second, connectToDatabase, registerText, resendText, sendResultMessage)
+	return handlers.HandlerChain{}.Init(10*time.Second, connectToDatabase, registerText, forwardToChannel)
 }

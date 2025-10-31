@@ -21,7 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	godotenv.Load()
 
 	log.Println("Config loaded")
@@ -53,18 +53,38 @@ func main() {
 	log.Println("Bot created successfully")
 
 	log.Println("Bloodofspring telegram id:", viper.GetInt64("bloodofspring.telegram_id"))
+	sourceGroupID := viper.GetInt64("bloodofspring.source_group_id")
+	log.Println("Source group ID:", sourceGroupID)
+	targetChannelID := viper.GetInt64("bloodofspring.target_channel_id")
+	log.Println("Target channel ID:", targetChannelID)
+
 	b.Use(middleware.Logger())
-	bloodofspringOnly := b.Group()
-	bloodofspringOnly.Use(middleware.Whitelist(viper.GetInt64("bloodofspring.telegram_id")))
-	bloodofspringOnly.Use(tele.MiddlewareFunc(func(hf tele.HandlerFunc) tele.HandlerFunc {
+
+	// Обрабатываем сообщения из конкретной группы
+	b.Use(tele.MiddlewareFunc(func(hf tele.HandlerFunc) tele.HandlerFunc {
 		return func(c tele.Context) error {
-			if c.Chat().Type != tele.ChatPrivate {
+			// Проверяем, что сообщение пришло из нужной группы
+			if c.Chat().ID != sourceGroupID {
+				return nil
+			}
+			// Обрабатываем только групповые чаты или супергруппы
+			if c.Chat().Type != tele.ChatGroup && c.Chat().Type != tele.ChatSuperGroup {
 				return nil
 			}
 			return hf(c)
 		}
 	}))
-	bloodofspringOnly.Handle(tele.OnText, registertext.RegisterTextChain().Run)
+
+	// Обрабатываем все типы сообщений (текст, медиа и т.д.)
+	b.Handle(tele.OnText, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnPhoto, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnVideo, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnDocument, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnAudio, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnVoice, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnVideoNote, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnSticker, registertext.RegisterTextChain().Run)
+	b.Handle(tele.OnAnimation, registertext.RegisterTextChain().Run)
 
 	log.Println("Starting bot...")
 	b.Start()
