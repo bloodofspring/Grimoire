@@ -38,7 +38,7 @@ func main() {
 	pref := tele.Settings{
 		Token: os.Getenv("TELEGRAM_BOT_TOKEN"),
 		Poller: &tele.Webhook{
-			Listen: ":7760",
+			Listen: ":7760", // 7760
 			Endpoint: &tele.WebhookEndpoint{
 				PublicURL: os.Getenv("TELEGRAM_BOT_PUBLIC_URL"),
 			},

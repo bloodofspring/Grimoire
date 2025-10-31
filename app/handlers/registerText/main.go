@@ -79,12 +79,22 @@ func forwardToChannel(c tele.Context, args *handlers.Arg) (*handlers.Arg, error)
 	}
 
 	// Пересылаем сообщение в канал
-	_, err := c.Bot().Forward(
-		&tele.Chat{ID: targetChannelID},
-		message,
-	)
-	if err != nil {
-		return nil, errors.New("error forwarding message: " + err.Error())
+	if message.OriginalSender == nil {
+		_, err := c.Bot().Copy(
+			&tele.Chat{ID: targetChannelID},
+			message,
+		)
+		if err != nil {
+			return nil, errors.New("error forwarding message: " + err.Error())
+		}
+	} else {
+		_, err := c.Bot().Forward(
+			&tele.Chat{ID: targetChannelID},
+			message,
+		)
+		if err != nil {
+			return nil, errors.New("error forwarding message: " + err.Error())
+		}
 	}
 
 	return args, nil
