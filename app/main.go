@@ -65,10 +65,12 @@ func main() {
 		return func(c tele.Context) error {
 			// Проверяем, что сообщение пришло из нужной группы
 			if c.Chat().ID != sourceGroupID {
+				log.Println("Message not from source group")
 				return nil
 			}
 			// Обрабатываем только групповые чаты или супергруппы
 			if c.Chat().Type != tele.ChatGroup && c.Chat().Type != tele.ChatSuperGroup {
+				log.Println("Message not from group or super group")
 				return nil
 			}
 			return hf(c)
