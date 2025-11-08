@@ -80,6 +80,7 @@ func main() {
 
 	// Обрабатываем команду /start (или любую другую нужную команду)
 	b.Handle("/ignore", func(c tele.Context) error {
+		log.Println("Ignoring topic")
 		return ignoretopic.IgnoreTopicChain().Run(c)
 	})
 
