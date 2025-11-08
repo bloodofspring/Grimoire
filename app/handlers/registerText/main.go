@@ -2,6 +2,7 @@ package registertext
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"grimoire/database"
@@ -33,7 +34,7 @@ func checkIfTopicIsIgnored(c tele.Context, args *handlers.Arg) (*handlers.Arg, e
 		return nil, errors.New("no thread ID found in message")
 	}
 
-	err := db.Model(&models.IgnoredTopic{ChatID: message.Chat.ID, ThreadID: threadID}).Select()
+	err := db.Model(&models.IgnoredTopic{}).Where("chat_id = ? AND thread_id = ?", message.Chat.ID, threadID).Select()
 	if err == pg.ErrNoRows {
 		return args, nil
 	}
@@ -41,7 +42,7 @@ func checkIfTopicIsIgnored(c tele.Context, args *handlers.Arg) (*handlers.Arg, e
 		return nil, errors.New("error checking if topic is ignored: " + err.Error())
 	}
 
-	return args, errors.New("topic is ignored")
+	return args, fmt.Errorf("topic is ignored. threadID: %d, chatID: %d", threadID, message.Chat.ID)
 }
 
 func registerText(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
