@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"grimoire/database"
+	ignoretopic "grimoire/handlers/ignoreTopic"
 	registertext "grimoire/handlers/registerText"
 
 	"github.com/joho/godotenv"
@@ -76,6 +77,11 @@ func main() {
 			return hf(c)
 		}
 	}))
+
+	// Обрабатываем команду /start (или любую другую нужную команду)
+	b.Handle("/ignore", func(c tele.Context) error {
+		return ignoretopic.IgnoreTopicChain().Run(c)
+	})
 
 	// Обрабатываем все типы сообщений (текст, медиа и т.д.)
 	b.Handle(tele.OnText, registertext.RegisterTextChain().Run)

@@ -35,6 +35,7 @@ func InitDb() error {
 	models := []interface{}{
 		(*models.User)(nil),
 		(*models.Text)(nil),
+		(*models.IgnoredTopic)(nil),
 	}
 
 	for _, model := range models {

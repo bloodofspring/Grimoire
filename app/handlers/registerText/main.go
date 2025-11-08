@@ -22,6 +22,28 @@ func connectToDatabase(c tele.Context, args *handlers.Arg) (*handlers.Arg, error
 	return &newArgs, nil
 }
 
+func checkIfTopicIsIgnored(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
+	db := (*args)["db"].(*pg.DB)
+	message := c.Message()
+	if message == nil {
+		return nil, errors.New("message is nil")
+	}
+	threadID := message.ThreadID
+	if threadID == 0 {
+		return nil, errors.New("no thread ID found in message")
+	}
+
+	err := db.Model(&models.IgnoredTopic{ChatID: message.Chat.ID, ThreadID: threadID}).Select()
+	if err == pg.ErrNoRows {
+		return args, nil
+	}
+	if err != nil {
+		return nil, errors.New("error checking if topic is ignored: " + err.Error())
+	}
+
+	return args, errors.New("topic is ignored")
+}
+
 func registerText(c tele.Context, args *handlers.Arg) (*handlers.Arg, error) {
 	message := c.Message()
 	if message == nil {
@@ -101,5 +123,5 @@ func forwardToChannel(c tele.Context, args *handlers.Arg) (*handlers.Arg, error)
 }
 
 func RegisterTextChain() *handlers.HandlerChain {
-	return handlers.HandlerChain{}.Init(10*time.Second, connectToDatabase, registerText, forwardToChannel)
+	return handlers.HandlerChain{}.Init(10*time.Second, connectToDatabase, checkIfTopicIsIgnored, registerText, forwardToChannel)
 }
