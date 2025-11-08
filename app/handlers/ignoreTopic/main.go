@@ -5,6 +5,7 @@ import (
 	"grimoire/database"
 	"grimoire/database/models"
 	"grimoire/handlers"
+	"log"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -28,6 +29,8 @@ func markTopicAsIgnored(c tele.Context, args *handlers.Arg) (*handlers.Arg, erro
 	if threadID == 0 {
 		return nil, errors.New("no thread ID found in message")
 	}
+
+	log.Println("Marking topic as ignored", message.Chat.ID, threadID)
 
 	_, err := db.Model(&models.IgnoredTopic{ChatID: message.Chat.ID, ThreadID: threadID}).OnConflict("DO NOTHING").SelectOrInsert()
 	if err != nil {
