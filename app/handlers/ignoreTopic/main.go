@@ -32,7 +32,7 @@ func markTopicAsIgnored(c tele.Context, args *handlers.Arg) (*handlers.Arg, erro
 
 	log.Println("Marking topic as ignored", message.Chat.ID, threadID)
 
-	_, err := db.Model(&models.IgnoredTopic{ChatID: message.Chat.ID, ThreadID: threadID}).OnConflict("DO NOTHING").SelectOrInsert()
+	_, err := db.Model(&models.IgnoredTopic{ChatID: message.Chat.ID, ThreadID: threadID, UserID: c.Sender().ID}).Insert()
 	if err != nil {
 		return nil, errors.New("error marking topic as ignored: " + err.Error())
 	}
